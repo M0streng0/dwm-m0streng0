@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+# Handle click events to adjust brightness
+case "$BLOCK_BUTTON" in
+    4) brightnessctl set 5%+ > /dev/null ;;
+    5) brightnessctl set 5%- > /dev/null ;;
+esac
+
+# Get current and maximum brightness values
+current_brightness=$(cat /sys/class/backlight/intel_backlight/brightness)
+max_brightness=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+
+# Calculate the current brightness percentage
+brightness_percentage=$((current_brightness * 100 / max_brightness))
+
+# Get the icon based on the brightness percentage
+get_icon() {
+    local percentage=$1
+    case $percentage in
+        [0-9]|1[0-9]) echo "󱩎 " ;;
+        2[0-9]) echo "󱩏 " ;;
+        3[0-9]) echo "󱩐 " ;;
+        4[0-9]) echo "󱩑 " ;;
+        5[0-9]) echo "󱩒 " ;;
+        6[0-9]) echo "󱩓 " ;;
+        7[0-9]) echo "󱩔 " ;;
+        8[0-9]) echo "󱩕 " ;;
+        9[0-9]) echo "󱩖 " ;;
+        *) echo "󰛨 " ;;
+    esac
+}
+
+# Get the corresponding icon
+icon=$(get_icon "$brightness_percentage")
+
+# Display the brightness icon and percentage
+echo "^b#d08770^^c#2e3440^ ${icon} ^b#2e3440^^c#d08770^ ${brightness_percentage}%^b#2e3440^"

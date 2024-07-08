@@ -1,0 +1,64 @@
+#!/usr/bin/bash
+
+wpctl_cmd() {
+    arg="$2"
+
+    set -- "$1"
+    if [ "$1" = set-volume ]; then
+        set -- "$@" --limit=1.0
+    fi
+
+    set -- "$@" @DEFAULT_AUDIO_SINK@ "$arg"
+
+    command wpctl "$@"
+}
+
+mic_cmd() {
+    arg="$2"
+
+    set -- "$1"
+    if [ "$1" = set-volume ]; then
+        set -- "$@" --limit=1.0
+    fi
+
+    set -- "$@" @DEFAULT_AUDIO_SOURCE@ "$arg"
+
+    command wpctl "$@"
+}
+
+case "$BLOCK_BUTTON" in
+    1) wpctl_cmd set-mute toggle ;;
+    3) mic_cmd set-mute toggle ;;
+    4) wpctl_cmd set-volume 5%+ ;;
+    5) wpctl_cmd set-volume 5%- ;;
+esac
+
+mic_status=$(mic_cmd get-volume)
+if echo "$mic_status" | grep -q "[MUTED]"; then
+    mic_icon=" "
+else
+    mic_icon=" "
+fi
+
+volume_status=$(wpctl_cmd get-volume)
+if echo "$volume_status" | grep -q "[MUTED]"; then
+    echo "^b#bf616a^^c#2e3440^ ${mic_icon}  ^b#2e3440^"
+    exit
+fi
+
+volume_frac="$(echo "$volume_status" | cut -d' ' -f2)"
+volume="$(echo "$volume_frac * 100 / 1" | bc)"
+
+if [ -z "$volume" ]; then
+    exit 1
+fi
+
+if [ "$volume" -gt 50 ]; then
+    icon=" "
+elif [ "$volume" -gt 20 ]; then
+    icon=" "
+else
+    icon=""
+fi
+
+echo "^b#bf616a^^c#2e3440^ ${mic_icon}${icon} ^b#2e3440^^c#bf616a^ ${volume}%^b#2e3440^"

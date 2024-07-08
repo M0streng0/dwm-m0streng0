@@ -1,0 +1,113 @@
+#!/usr/bin/bash
+
+# File to store the current state (default or individual)
+state_file="/tmp/toggle_battery_state"
+# File to store the last notified state
+notify_file="/tmp/battery_notify_state"
+
+# Initialize state and notify files if they don't exist
+[ ! -f "$state_file" ] && echo "default" > "$state_file"
+[ ! -f "$notify_file" ] && echo "none" > "$notify_file"
+
+# Function to get battery information
+get_battery_info() {
+    local info_type=$1
+    local battery=$2
+    cat "/sys/class/power_supply/$battery/$info_type"
+}
+
+# Function to get the current state
+get_state() {
+    cat "$state_file"
+}
+
+# Function to get the last notified state
+get_notify_state() {
+    cat "$notify_file"
+}
+
+# Function to toggle the state
+toggle_state() {
+    case "$(get_state)" in
+        "individual") echo "power" > "$state_file" ;;
+        "power") echo "default" > "$state_file" ;;
+        *) echo "individual" > "$state_file" ;;
+    esac
+}
+
+# Handle click event to toggle state
+case "$BLOCK_BUTTON" in
+    1) toggle_state ;;
+esac
+
+# Get the current state
+current_state=$(get_state)
+
+# Function to get the icon based on the battery status
+get_icon() {
+    local status=$1
+    local percentage=$2
+    case "$status" in
+        "Full") echo " " ;;
+        "Charging") echo " " ;;
+        *) 
+            if [ "$percentage" -gt 80 ]; then echo " "
+            elif [ "$percentage" -gt 60 ]; then echo " "
+            elif [ "$percentage" -gt 40 ]; then echo " "
+            elif [ "$percentage" -gt 20 ]; then echo " "
+            else echo " "
+            fi
+        ;;
+    esac
+}
+
+# Function to send notification if battery is low
+send_notification() {
+    local total_percentage=$1
+    local notify_state=$(get_notify_state)
+    if [ "$total_percentage" -le 5 ] && [ "$notify_state" != "5" ]; then
+        dunstify "Battery critically low" "Battery is at ${total_percentage}%!" -u critical
+        echo "5" > "$notify_file"
+    elif [ "$total_percentage" -le 15 ] && [ "$notify_state" != "15" ]; then
+        dunstify "Battery low" "Battery is at ${total_percentage}%!" -u normal
+        echo "15" > "$notify_file"
+    elif [ "$total_percentage" -gt 15 ]; then
+        echo "none" > "$notify_file"
+    fi
+}
+
+# Function to get combined battery status and percentage
+get_combined_battery_info() {
+    local battery0_status=$(get_battery_info "status" "BAT0")
+    local battery1_status=$(get_battery_info "status" "BAT1")
+    local battery0_percentage=$(get_battery_info "capacity" "BAT0")
+    local battery1_percentage=$(get_battery_info "capacity" "BAT1")
+    local battery0_energy_full=$(get_battery_info "energy_full" "BAT0")
+    local battery1_energy_full=$(get_battery_info "energy_full" "BAT1")
+    local total_energy_full=$((battery0_energy_full + battery1_energy_full))
+    local total_percentage=$(( (battery0_percentage * battery0_energy_full + battery1_percentage * battery1_energy_full) / total_energy_full ))
+    local total_status="Discharging"
+    [ "$battery0_status" = "Charging" ] || [ "$battery1_status" = "Charging" ] && total_status="Charging"
+    [ "$battery0_status" = "Full" ] && [ "$battery1_status" = "Full" ] && total_status="Full"
+    echo "$total_status $total_percentage $battery0_percentage $battery1_percentage"
+}
+
+# Display the battery status and percentage based on the current state
+case "$current_state" in
+    "individual")
+        read -r total_status total_percentage battery0_percentage battery1_percentage <<< $(get_combined_battery_info)
+        icon=$(get_icon "$total_status" "$total_percentage")
+        echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${battery0_percentage}% - ${battery1_percentage}%^b#2e3440^"
+    ;;
+    "power")
+        power_now=$(($(get_battery_info "power_now" "BAT0") + $(get_battery_info "power_now" "BAT1")))
+        power_now_watt=$(awk "BEGIN {printf \"%.3f\", $power_now / 1000000}")
+        echo "^b#a3be8c^^c#2e3440^  ^b#2e3440^^c#a3be8c^ ${power_now_watt} W^b#2e3440^"
+    ;;
+    *)
+        read -r total_status total_percentage battery0_percentage battery1_percentage <<< $(get_combined_battery_info)
+        icon=$(get_icon "$total_status" "$total_percentage")
+        echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${total_percentage}%^b#2e3440^"
+        send_notification "$total_percentage"
+    ;;
+esac

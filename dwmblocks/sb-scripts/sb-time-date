@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+# File to store the current state (time or date)
+state_file="/tmp/toggle_time_date_state"
+
+# Initialize the state file if it doesn't exist
+[ ! -f "$state_file" ] && echo "time" > "$state_file"
+
+# Function to toggle the state
+toggle_state() {
+    [ "$(cat "$state_file")" = "date" ] && echo "time" > "$state_file" || echo "date" > "$state_file"
+}
+
+# Get the current date and time
+current_day=$(date "+%d-%m-%Y")
+current_time=$(date "+%H:%M:%S")
+
+case "$BLOCK_BUTTON" in
+    1) toggle_state ;;
+esac
+
+# Determine what to display based on the current state
+case "$(cat "$state_file")" in
+    date) echo "^b#5e81ac^^c#2e3440^   ^b#81a1c1^^c#2e3440^ ${current_day} " ;;
+    *) echo "^b#5e81ac^^c#2e3440^   ^b#81a1c1^^c#2e3440^ ${current_time} " ;;
+esac

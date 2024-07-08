@@ -1,0 +1,68 @@
+#!/usr/bin/bash
+
+# Path to the temporary file
+temp_file="/tmp/cpu_usage_temp"
+
+# Function to read CPU statistics
+read_cpu_stat() {
+    head -n1 /proc/stat
+}
+
+# Function to calculate CPU usage
+calculate_cpu_usage() {
+    cpu_now=($(read_cpu_stat)) # Get the current CPU statistics
+  
+    # If the temp file doesn't exist, initialize it
+    if [[ ! -f "$temp_file" ]]; then
+        echo "${cpu_now[@]}" > "$temp_file"
+        exit 0
+    fi
+
+    cpu_last=($(cat "$temp_file")) # Read the previous CPU statistics from the temp file
+
+    # Get all columns but skip the first (which is the "cpu" string)
+    cpu_sum_now=0
+    cpu_sum_last=0
+    for i in "${cpu_now[@]:1}"; do
+        cpu_sum_now=$((cpu_sum_now + i))
+    done
+    for i in "${cpu_last[@]:1}"; do
+        cpu_sum_last=$((cpu_sum_last + i))
+    done
+
+    cpu_delta=$((cpu_sum_now - cpu_sum_last))
+    cpu_idle=$((cpu_now[4] - cpu_last[4]))
+    cpu_used=$((cpu_delta - cpu_idle))
+
+    # Calculate the CPU usage percentage
+    cpu_usage=$((100 * cpu_used / cpu_delta))
+
+    # Save the current CPU statistics
+    echo "${cpu_now[@]}" > "$temp_file" 
+
+    # Output the CPU usage percentage
+    echo "${cpu_usage}%"
+}
+
+# Function to get RAM usage
+calculate_ram_usage() {
+    free | awk 'NR==2{printf "%d%%\n", ($3*100/$2 + 0.5)}'
+}
+
+# Function to get temperature
+calculate_avg_temp() {
+    sensors | awk '/Core/ {sum+=$3; count++} END {printf "%d°C\n", sum/count + 0.5}'
+}
+
+# Handle click events to refresh the values
+case "$BLOCK_BUTTON" in
+    1) ;;
+esac
+
+# Get the current values
+cpu_usage=$(calculate_cpu_usage)
+ram_usage=$(calculate_ram_usage)
+temperature=$(calculate_avg_temp)
+
+# Display the values
+echo "^b#ebcb8b^^c#2e3440^   ^b#2e3440^^c#ebcb8b^  ${cpu_usage}  ${ram_usage} ${temperature}^b#2e3440^"
