@@ -220,6 +220,8 @@ static const char *vol_mute[]  = { "audio", "toggle", NULL };
 static const char *mic_mute[]  = { "audio", "mic", NULL };
 static const char *br_up[]     = { "brightness", "up", NULL };
 static const char *br_down[]   = { "brightness", "down", NULL };
+static const char *prtscreencmd[] = { "printscreen", NULL };
+static const char *prtscreenselcmd[] = { "printscreen", "select", NULL };
 
 /* This defines the name of the executable that handles the bar (used for signalling purposes) */
 #define STATUSBAR "dwmblocks"
@@ -242,6 +244,8 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioMicMute,         spawn,    {.v = mic_mute } },
 	{ 0,                            XF86XK_MonBrightnessUp,      spawn,    {.v = br_up } },
 	{ 0,                            XF86XK_MonBrightnessDown,    spawn,    {.v = br_down } },
+	{ 0,                            XK_Print,      spawn,                  {.v = prtscreencmd } },
+	{ MODKEY,                       XK_Print,      spawn,                  {.v = prtscreenselcmd } },
 	{ MODKEY,                       XK_b,          togglebar,              {0} },
 	{ MODKEY,                       XK_j,          focusstack,             {.i = +1 } },
 	{ MODKEY,                       XK_k,          focusstack,             {.i = -1 } },

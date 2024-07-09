@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SCREENSHOT_DIR="$(xdg-user-dir PICTURES)/Screenshots"
+TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
+
+if [ "$1" == "select" ]; then
+    FILENAME="$SCREENSHOT_DIR/Screenshot_$TIMESTAMP.png"
+    scrot -s - | tee "$FILENAME" | xclip -selection clipboard -t image/png
+    dunstify "Screenshot taken" "Selected area saved to $FILENAME and copied to clipboard"
+else
+    FILENAME="$SCREENSHOT_DIR/Screenshot_$TIMESTAMP.png"
+    scrot "$FILENAME"
+    dunstify "Screenshot taken" "Full screen saved to $FILENAME"
+fi
