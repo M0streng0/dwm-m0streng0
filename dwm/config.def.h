@@ -207,14 +207,41 @@ static const char *dmenucmd[] = {
 	NULL
 };
 static const char *termcmd[]  = { "st", NULL };
+static const char *qalculatecmd[] = { "qalculate-gtk", NULL };
+static const char *thunarcmd[] = { "thunar", NULL };
+static const char *thoriumcmd[] = { "thorium-browser", NULL };
+static const char *sublimecmd[] = { "subl", NULL };
+static const char *launchercmd[] = { "sh", "-c", "~/.config/rofi/launcher/launcher.sh", NULL };
+static const char *powercmd[] = { "sh", "-c", "~/.config/rofi/powermenu/powermenu.sh", NULL };
+static const char *obsidiancmd[] = { "obsidian", NULL };
+static const char *vol_up[]    = { "audio", "up", NULL };
+static const char *vol_down[]  = { "audio", "down", NULL };
+static const char *vol_mute[]  = { "audio", "toggle", NULL };
+static const char *mic_mute[]  = { "audio", "mic", NULL };
+static const char *br_up[]     = { "brightness", "up", NULL };
+static const char *br_down[]   = { "brightness", "down", NULL };
 
 /* This defines the name of the executable that handles the bar (used for signalling purposes) */
 #define STATUSBAR "dwmblocks"
 
+#include <X11/XF86keysym.h>
 static const Key keys[] = {
 	/* modifier                     key            function                argument */
 	{ MODKEY,                       XK_p,          spawn,                  {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return,     spawn,                  {.v = termcmd } },
+	{ MODKEY,                       XK_c,          spawn,                  {.v = qalculatecmd } },
+	{ MODKEY,                       XK_e,          spawn,                  {.v = thunarcmd } },
+	{ MODKEY,                       XK_w,          spawn,                  {.v = thoriumcmd } },
+	{ MODKEY,                       XK_s,          spawn,                  {.v = sublimecmd } },
+	{ MODKEY,                       XK_a,          spawn,                  {.v = launchercmd } },
+	{ MODKEY|ShiftMask,             XK_BackSpace,  spawn,                  {.v = powercmd } },
+	{ MODKEY,                       XK_o,          spawn,                  {.v = obsidiancmd } },
+	{ 0,                            XF86XK_AudioRaiseVolume,     spawn,    {.v = vol_up } },
+	{ 0,                            XF86XK_AudioLowerVolume,     spawn,    {.v = vol_down } },
+	{ 0,                            XF86XK_AudioMute,            spawn,    {.v = vol_mute } },
+	{ 0,                            XF86XK_AudioMicMute,         spawn,    {.v = mic_mute } },
+	{ 0,                            XF86XK_MonBrightnessUp,      spawn,    {.v = br_up } },
+	{ 0,                            XF86XK_MonBrightnessDown,    spawn,    {.v = br_down } },
 	{ MODKEY,                       XK_b,          togglebar,              {0} },
 	{ MODKEY,                       XK_j,          focusstack,             {.i = +1 } },
 	{ MODKEY,                       XK_k,          focusstack,             {.i = -1 } },
