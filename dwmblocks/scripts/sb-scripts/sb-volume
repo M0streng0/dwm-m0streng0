@@ -28,6 +28,7 @@ mic_cmd() {
 
 case "$BLOCK_BUTTON" in
     1) wpctl_cmd set-mute toggle ;;
+    2) pavucontrol & ;;
     3) mic_cmd set-mute toggle ;;
     4) wpctl_cmd set-volume 5%+ ;;
     5) wpctl_cmd set-volume 5%- ;;
