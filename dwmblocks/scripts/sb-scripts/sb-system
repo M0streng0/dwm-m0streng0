@@ -10,15 +10,17 @@ read_cpu_stat() {
 
 # Function to calculate CPU usage
 calculate_cpu_usage() {
-    cpu_now=($(read_cpu_stat)) # Get the current CPU statistics
+    # Get the current CPU statistics
+    IFS=' ' read -ra cpu_now < <(read_cpu_stat)
   
     # If the temp file doesn't exist, initialize it
     if [[ ! -f "$temp_file" ]]; then
-        echo "${cpu_now[@]}" > "$temp_file"
+        echo "${cpu_now[*]}" > "$temp_file"
         exit 0
     fi
 
-    cpu_last=($(cat "$temp_file")) # Read the previous CPU statistics from the temp file
+    # Read the previous CPU statistics from the temp file
+    IFS=' ' read -ra cpu_last < <(cat "$temp_file")
 
     # Get all columns but skip the first (which is the "cpu" string)
     cpu_sum_now=0
@@ -35,10 +37,14 @@ calculate_cpu_usage() {
     cpu_used=$((cpu_delta - cpu_idle))
 
     # Calculate the CPU usage percentage
-    cpu_usage=$((100 * cpu_used / cpu_delta))
+    if [[ $cpu_delta -ne 0 ]]; then
+        cpu_usage=$((100 * cpu_used / cpu_delta))
+    else
+        cpu_usage=0
+    fi
 
     # Save the current CPU statistics
-    echo "${cpu_now[@]}" > "$temp_file" 
+    echo "${cpu_now[*]}" > "$temp_file" 
 
     # Output the CPU usage percentage
     echo "${cpu_usage}%"

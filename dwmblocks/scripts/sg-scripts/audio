@@ -17,4 +17,4 @@ case "$1" in
         exit 1
 esac
 
-kill -35 $(pidof dwmblocks)
+kill -35 "$(pidof dwmblocks)"

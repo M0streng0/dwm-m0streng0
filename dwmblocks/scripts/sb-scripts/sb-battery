@@ -64,7 +64,8 @@ get_icon() {
 # Function to send notification if battery is low
 send_notification() {
     local total_percentage=$1
-    local notify_state=$(get_notify_state)
+    local notify_state
+    notify_state=$(get_notify_state)
     if [ "$total_percentage" -le 5 ] && [ "$notify_state" != "5" ]; then
         dunstify "Battery critically low" "Battery is at ${total_percentage}%!" -u critical
         echo "5" > "$notify_file"
@@ -78,12 +79,18 @@ send_notification() {
 
 # Function to get combined battery status and percentage
 get_combined_battery_info() {
-    local battery0_status=$(get_battery_info "status" "BAT0")
-    local battery1_status=$(get_battery_info "status" "BAT1")
-    local battery0_percentage=$(get_battery_info "capacity" "BAT0")
-    local battery1_percentage=$(get_battery_info "capacity" "BAT1")
-    local battery0_energy_full=$(get_battery_info "energy_full" "BAT0")
-    local battery1_energy_full=$(get_battery_info "energy_full" "BAT1")
+    local battery0_status
+    local battery1_status
+    local battery0_percentage
+    local battery1_percentage
+    local battery0_energy_full
+    local battery1_energy_full
+    battery0_status=$(get_battery_info "status" "BAT0")
+    battery1_status=$(get_battery_info "status" "BAT1")
+    battery0_percentage=$(get_battery_info "capacity" "BAT0")
+    battery1_percentage=$(get_battery_info "capacity" "BAT1")
+    battery0_energy_full=$(get_battery_info "energy_full" "BAT0")
+    battery1_energy_full=$(get_battery_info "energy_full" "BAT1")
     local total_energy_full=$((battery0_energy_full + battery1_energy_full))
     local total_percentage=$(( (battery0_percentage * battery0_energy_full + battery1_percentage * battery1_energy_full) / total_energy_full ))
     local total_status="Discharging"
@@ -95,7 +102,7 @@ get_combined_battery_info() {
 # Display the battery status and percentage based on the current state
 case "$current_state" in
     "individual")
-        read -r total_status total_percentage battery0_percentage battery1_percentage <<< $(get_combined_battery_info)
+        read -r total_status total_percentage battery0_percentage battery1_percentage <<< "$(get_combined_battery_info)"
         icon=$(get_icon "$total_status" "$total_percentage")
         echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${battery0_percentage}% - ${battery1_percentage}%^b#2e3440^"
     ;;
@@ -105,7 +112,7 @@ case "$current_state" in
         echo "^b#a3be8c^^c#2e3440^  ^b#2e3440^^c#a3be8c^ ${power_now_watt} W^b#2e3440^"
     ;;
     *)
-        read -r total_status total_percentage battery0_percentage battery1_percentage <<< $(get_combined_battery_info)
+        read -r total_status total_percentage battery0_percentage battery1_percentage <<< "$(get_combined_battery_info)"
         icon=$(get_icon "$total_status" "$total_percentage")
         echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${total_percentage}%^b#2e3440^"
         send_notification "$total_percentage"
