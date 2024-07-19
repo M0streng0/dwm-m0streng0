@@ -55,11 +55,6 @@ calculate_ram_usage() {
     free | awk 'NR==2{printf "%d%%\n", ($3*100/$2 + 0.5)}'
 }
 
-# Function to get temperature
-calculate_avg_temp() {
-    sensors | awk '/Core/ {sum+=$3; count++} END {printf "%d°C\n", sum/count + 0.5}'
-}
-
 # Handle click events to refresh the values
 case "$BLOCK_BUTTON" in
     1) ;;
@@ -68,7 +63,6 @@ esac
 # Get the current values
 cpu_usage=$(calculate_cpu_usage)
 ram_usage=$(calculate_ram_usage)
-temperature=$(calculate_avg_temp)
 
 # Display the values
-echo "^b#ebcb8b^^c#2e3440^   ^b#2e3440^^c#ebcb8b^  ${cpu_usage}  ${ram_usage} ${temperature}^b#2e3440^"
+echo "^b#ebcb8b^^c#2e3440^   ^b#2e3440^^c#ebcb8b^  ${cpu_usage}  ${ram_usage}^b#2e3440^"
