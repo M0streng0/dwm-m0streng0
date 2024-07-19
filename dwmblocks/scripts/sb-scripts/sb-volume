@@ -1,76 +1,45 @@
 #!/usr/bin/bash
 
-# Function to run wpctl command with retries
-run_wpctl_cmd() {
-    local cmd="$1"
-    local arg="$2"
-    local retries=5
-    local delay=2
-    local output
-
-    for ((i=1; i<=retries; i++)); do
-        output=$(wpctl "$cmd" "$arg" 2>&1)
-        if ! echo "$output" | grep -q "Translate ID error"; then
-            echo "$output"
-            return
-        fi
-        sleep $delay
-    done
-
-    echo "Error"
-}
-
-# Function to handle wpctl commands for audio sink (output)
-wpctl_cmd() {
-    arg="$2"
-    set -- "$1"
-    if [ "$1" = set-volume ]; then
-        set -- "$@" --limit=1.0
-    fi
-    set -- "$@" @DEFAULT_AUDIO_SINK@ "$arg"
-    run_wpctl_cmd "$@"
-}
-
-# Function to handle wpctl commands for audio source (input/microphone)
-mic_cmd() {
-    arg="$2"
-    set -- "$1"
-    if [ "$1" = set-volume ]; then
-        set -- "$@" --limit=1.0
-    fi
-    set -- "$@" @DEFAULT_AUDIO_SOURCE@ "$arg"
-    run_wpctl_cmd "$@"
-}
-
 # Handle button actions
 case "$BLOCK_BUTTON" in
-    1) wpctl_cmd set-mute toggle ;;
+    1) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
     2) pavucontrol & ;;
-    3) mic_cmd set-mute toggle ;;
-    4) wpctl_cmd set-volume 5%+ ;;
-    5) wpctl_cmd set-volume 5%- ;;
+    3) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
+    4) wpctl set-volume --limit=1.0 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+    5) wpctl set-volume --limit=1.0 @DEFAULT_AUDIO_SINK@ 5%- ;;
 esac
 
-# Get microphone status
-mic_status=$(mic_cmd get-volume)
+# In case of pipewire not being fully loaded (after boot)
+max_retries=5
+retry_count=0
+
+while [ $retry_count -lt $max_retries ]; do
+    mic_status=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>&1)
+    if echo "$mic_status" | grep -q "Translate ID error"; then
+        # Increment retry count and wait before retrying
+        retry_count=$((retry_count + 1))
+        sleep 1
+    else
+        # Break the loop if no error
+        break
+    fi
+done
+
 if echo "$mic_status" | grep -q "[MUTED]"; then
     mic_icon=" "
 else
     mic_icon=" "
 fi
 
-# Get volume status
-volume_status=$(wpctl_cmd get-volume)
+volume_status=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
 if echo "$volume_status" | grep -q "[MUTED]"; then
     echo "^b#bf616a^^c#2e3440^ ${mic_icon}  ^b#2e3440^"
     exit
 fi
 
-# Extract volume level
 volume_frac="$(echo "$volume_status" | cut -d' ' -f2)"
 volume="$(echo "$volume_frac * 100 / 1" | bc)"
 
-# Exit if volume extraction failed
 if [ -z "$volume" ]; then
     exit 1
 fi
@@ -83,5 +52,4 @@ else
     icon=""
 fi
 
-# Display the volume and microphone status
 echo "^b#bf616a^^c#2e3440^ ${mic_icon}${icon} ^b#2e3440^^c#bf616a^ ${volume}%^b#2e3440^"
