@@ -27,6 +27,7 @@ drawstatusbar(BarArg *a, char* stext)
 		die("malloc");
 	p = text;
 	copyvalidchars(text, stext);
+	text[len] = '\0';
 
 	drw_setscheme(drw, scheme[LENGTH(colors)]);
 	drw->scheme[ColFg] = scheme[SchemeNorm][ColFg];

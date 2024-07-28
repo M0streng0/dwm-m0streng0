@@ -43,6 +43,7 @@ swallow(Client *p, Client *c)
 	wc.border_width = p->bw;
 	XConfigureWindow(dpy, p->win, CWBorderWidth, &wc);
 	XMoveResizeWindow(dpy, p->win, s->x, s->y, s->w, s->h);
+
 	XSetWindowBorder(dpy, p->win, scheme[SchemeNorm][ColBorder].pixel);
 
 	arrange(p->mon);
