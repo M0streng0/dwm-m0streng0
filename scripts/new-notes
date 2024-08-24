@@ -1,0 +1,127 @@
+#!/bin/bash
+
+# Base directory where notes are stored
+NOTES_DIR="$HOME/Notes"
+
+# Color codes
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Trap SIGINT for cleanup
+trap 'echo -e "${RED}\nInterrupted. Exiting...${NC}"; exit 1;' SIGINT
+
+# Function to display a menu and handle selection with fzf
+select_or_create() {
+    local dir="$1"
+    local prompt="$2"
+
+    # Use find to get relative paths and store in options array
+    mapfile -t options < <(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%P\n' | sed 's|/$||' | sort)
+
+    # Add the "Create new..." option
+    options+=("Create new...")
+
+    # Use fzf to display options with a smaller window and bind backspace to navigate back
+    selection=$(printf "%s\n" "${options[@]}" | fzf --prompt="$prompt " --height=40% --layout=reverse --bind 'backspace:abort' --color=fg:7,bg:0,hl:2,fg+:3,bg+:0,hl+:6)
+
+    # Handle backspace
+    if [ $? -ne 0 ]; then
+        echo "back"
+        return
+    fi
+
+    # Handle selection
+    if [ "$selection" == "Create new..." ]; then
+        read -p "Enter new name: " new_name
+        new_dir="$dir/$new_name"
+        mkdir -p "$new_dir"
+        echo "$new_dir"
+    else
+        echo "$dir/$selection"
+    fi
+}
+
+# Recursive function to navigate through the steps
+navigate() {
+    local step="$1"
+    local dir="$2"
+    local prompt="$3"
+
+    local result=$(select_or_create "$dir" "$prompt")
+    
+    if [ "$result" == "back" ]; then
+        return 1
+    else
+        eval "$step='$result'"
+        return 0
+    fi
+}
+
+# Navigation loop
+while true; do
+    # Step 1: Select Area Group Category
+    if ! navigate "selected_area" "$NOTES_DIR" "Select an Area Group Category:"; then
+        continue
+    fi
+    
+    # Step 2: Select Category
+    area_name=$(basename "$selected_area")  # Get the name of the selected area
+    if ! navigate "selected_category" "$selected_area" "Select a Category ($area_name):"; then
+        continue
+    fi
+    
+    # Step 3: Ask if a subfolder is needed (optional)
+    read -p "Do you want to create/select a subfolder inside $selected_category? (y/N): " subfolder_choice
+    if [[ $subfolder_choice =~ ^[Yy]$ ]]; then
+        if ! navigate "selected_subfolder" "$selected_category/" "Select or create a Subfolder:"; then
+            continue
+        fi
+        selected_folder="$selected_subfolder"
+    else
+        selected_folder="$selected_category"
+    fi
+
+    # Step 4: List existing markdown files in the selected folder, one per line
+    echo -e "${BLUE}\nExisting notes in $selected_folder:${NC}"
+    files=("$selected_folder"/*.md)
+    if [ -e "${files[0]}" ]; then
+        for file in "${files[@]}"; do
+            basename "$file"
+        done | nl -w1 -s') '
+    else
+        echo -e "${YELLOW}No markdown files found.${NC}"
+    fi
+
+    break
+done
+
+# Step 5: Create a new note (Markdown file)
+read -p $'\nEnter the name of the new note (without extension): ' note_name
+new_note="$selected_folder/$note_name.md"
+
+# Step 6: Create the note file with the template
+if [ -f "$new_note" ]; then
+    echo -e "${RED}Note already exists: $new_note${NC}"
+else
+    touch "$new_note"
+    
+    # Replace underscores with spaces in the note name for the template
+    title="${note_name//_/ }"
+
+    # Calculate the length of the title
+    title_length=${#note_name}
+    border_line=$(printf '─%.0s' $(seq 1 $((140 - 3 - title_length)))) # subtracted 3, due to spacing and first line
+    bottom_line=$(printf '─%.0s' $(seq 1 140))
+
+    # Write the template to the new note
+    {
+        echo "┌─ ${title} ${border_line}┐"
+        echo ""
+        echo "└${bottom_line}┘"
+    } > "$new_note"
+
+    echo -e "${GREEN}New note created with template: $new_note${NC}"
+fi
