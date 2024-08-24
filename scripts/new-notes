@@ -19,7 +19,7 @@ select_or_create() {
     local prompt="$2"
 
     # Use find to get relative paths and store in options array
-    mapfile -t options < <(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%P\n' | sed 's|/$||' | sort)
+    mapfile -t options < <(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%P\n' | sort)
 
     # Add the "Create new..." option
     options+=("Create new...")
@@ -35,7 +35,7 @@ select_or_create() {
 
     # Handle selection
     if [ "$selection" == "Create new..." ]; then
-        read -p "Enter new name: " new_name
+        read -r -p "Enter new name: " new_name
         new_dir="$dir/$new_name"
         mkdir -p "$new_dir"
         echo "$new_dir"
@@ -50,7 +50,8 @@ navigate() {
     local dir="$2"
     local prompt="$3"
 
-    local result=$(select_or_create "$dir" "$prompt")
+    local result
+    result=$(select_or_create "$dir" "$prompt")
     
     if [ "$result" == "back" ]; then
         return 1
@@ -99,7 +100,7 @@ while true; do
 done
 
 # Step 5: Create a new note (Markdown file)
-read -p $'\nEnter the name of the new note (without extension): ' note_name
+read -r -p $'\nEnter the name of the new note (without extension): ' note_name
 new_note="$selected_folder/$note_name.md"
 
 # Step 6: Create the note file with the template
