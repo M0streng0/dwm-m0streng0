@@ -15,6 +15,8 @@ kscrolldown(const Arg* a)
 		tfulldirt();
 	}
 
+	scroll_images(-1*n);
+
 	if (n > 0)
 		restoremousecursor();
 }
@@ -37,6 +39,8 @@ kscrollup(const Arg* a)
 		selscroll(0, n);
 		tfulldirt();
 	}
+
+	scroll_images(n);
 
 	if (n > 0)
 		restoremousecursor();
