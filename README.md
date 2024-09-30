@@ -32,7 +32,6 @@ This repository includes my configuration for [st-flexipatch](https://github.com
 - **BAR_SYSTRAY_PATCH**: System tray support in the status bar.
 - **BAR_TAGS_PATCH**: Enhances tag display in the status bar.
 - **BAR_WINTITLE_PATCH**: Window titles in the status bar.
-- **BAR_ACTIVETAGINDICATORBAR_PATCH**: Active tag indicator bar.
 - **BAR_CENTEREDWINDOWNAME_PATCH**: Centers window names in the status bar.
 - **ALWAYSCENTER_PATCH**: Centers floating windows.
 - **FAKEFULLSCREEN_CLIENT_PATCH**: Allows fake fullscreen for clients.
@@ -54,12 +53,18 @@ This repository includes my configuration for [st-flexipatch](https://github.com
 ### ST Patches
 
 - **BLINKING_CURSOR_PATCH**: Blinking cursor support.
+- **BOLD_IS_NOT_BRIGHT_PATCH**: Renders bold text as bold without altering the color.
 - **BOXDRAW_PATCH**: Box drawing support.
+- **COLUMNS_PATCH**: Prevents text from being cut off when the terminal is resized.
 - **DELKEY_PATCH**: Del key support.
+- **DYNAMIC_CURSOR_COLOR_PATCH**: Makes the cursor color the inverse of the current cell color.
 - **LIGATURES_PATCH**: Support for ligatures.
+- **NEWTERM_PATCH**: Spawns a new `st` terminal with the same current working directory.
 - **OPENURLONCLICK_PATCH**: Open URLs on click.
+- **SIXEL_PATCH**: Adds SIXEL graphics support for enhanced terminal graphics.
 - **SCROLLBACK_PATCH**: Scrollback buffer support.
 - **SCROLLBACK_MOUSE_ALTSCREEN_PATCH**: Scrollback with mouse in alternate screen.
+- **WIDE_GLYPHS_PATCH**: Allows wide glyphs to be rendered correctly without truncation.
 
 ## Acknowledgements
 
