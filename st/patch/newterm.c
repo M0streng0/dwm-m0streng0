@@ -1,7 +1,15 @@
+extern char* argv0;
+
+static char*
+getcwd_by_pid(pid_t pid) {
+	static char cwd[32];
+	snprintf(cwd, sizeof cwd, "/proc/%d/cwd", pid);
+	return cwd;
+}
+
 void
 newterm(const Arg* a)
 {
-	int res;
 	switch (fork()) {
 	case -1:
 		die("fork failed: %s\n", strerror(errno));
@@ -12,19 +20,14 @@ newterm(const Arg* a)
 			die("fork failed: %s\n", strerror(errno));
 			break;
 		case 0:
-			res = chdir(getcwd_by_pid(pid));
-			execlp("st", "./st", NULL);
-			break;
+			chdir(getcwd_by_pid(pid));
+
+			execl("/proc/self/exe", argv0, NULL);
+			exit(1);
 		default:
 			exit(0);
 		}
 	default:
 		wait(NULL);
 	}
-}
-
-static char *getcwd_by_pid(pid_t pid) {
-	char buf[32];
-	snprintf(buf, sizeof buf, "/proc/%d/cwd", pid);
-	return realpath(buf, NULL);
 }
