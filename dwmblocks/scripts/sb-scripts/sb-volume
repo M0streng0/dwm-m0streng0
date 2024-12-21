@@ -9,29 +9,14 @@ case "$BLOCK_BUTTON" in
     5) wpctl set-volume --limit=1.0 @DEFAULT_AUDIO_SINK@ 5%- ;;
 esac
 
-# In case of pipewire not being fully loaded (after boot)
-max_retries=5
-retry_count=0
-
-while [ $retry_count -lt $max_retries ]; do
-    mic_status=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>&1)
-    if echo "$mic_status" | grep -q "Translate ID error"; then
-        # Increment retry count and wait before retrying
-        retry_count=$((retry_count + 1))
-        sleep 1
-    else
-        # Break the loop if no error
-        break
-    fi
-done
-
+mic_status=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>&1)
 if echo "$mic_status" | grep -q "[MUTED]"; then
     mic_icon=" "
 else
     mic_icon=" "
 fi
 
-volume_status=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
+volume_status=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>&1)
 if echo "$volume_status" | grep -q "[MUTED]"; then
     echo "^b#bf616a^^c#2e3440^ ${mic_icon}  ^b#2e3440^"
     exit
