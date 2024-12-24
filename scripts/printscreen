@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 SCREENSHOT_DIR="$(xdg-user-dir PICTURES)/Screenshots"
 TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')

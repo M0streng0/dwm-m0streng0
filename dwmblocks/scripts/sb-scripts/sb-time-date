@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 # File to store the current state (time or date)
 state_file="/tmp/toggle_time_date_state"
 

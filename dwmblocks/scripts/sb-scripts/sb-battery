@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # File to store the current state (default or individual)
 state_file="/tmp/toggle_battery_state"
@@ -11,8 +11,8 @@ notify_file="/tmp/battery_notify_state"
 
 # Function to get battery information
 get_battery_info() {
-    local info_type=$1
-    local battery=$2
+    info_type=$1
+    battery=$2
     cat "/sys/class/power_supply/$battery/$info_type"
 }
 
@@ -28,7 +28,8 @@ get_notify_state() {
 
 # Function to toggle the state
 toggle_state() {
-    case "$(get_state)" in
+    current_state=$(get_state)
+    case "$current_state" in
         "individual") echo "power" > "$state_file" ;;
         "power") echo "default" > "$state_file" ;;
         *) echo "individual" > "$state_file" ;;
@@ -45,8 +46,8 @@ current_state=$(get_state)
 
 # Function to get the icon based on the battery status
 get_icon() {
-    local status=$1
-    local percentage=$2
+    status=$1
+    percentage=$2
     case "$status" in
         "Full") echo " " ;;
         "Charging") echo " " ;;
@@ -63,8 +64,7 @@ get_icon() {
 
 # Function to send notification if battery is low
 send_notification() {
-    local total_percentage=$1
-    local notify_state
+    total_percentage=$1
     notify_state=$(get_notify_state)
     if [ "$total_percentage" -le 5 ] && [ "$notify_state" != "5" ]; then
         dunstify "Battery critically low" "Battery is at ${total_percentage}%!" -u critical
@@ -79,21 +79,15 @@ send_notification() {
 
 # Function to get combined battery status and percentage
 get_combined_battery_info() {
-    local battery0_status
-    local battery1_status
-    local battery0_percentage
-    local battery1_percentage
-    local battery0_energy_full
-    local battery1_energy_full
     battery0_status=$(get_battery_info "status" "BAT0")
     battery1_status=$(get_battery_info "status" "BAT1")
     battery0_percentage=$(get_battery_info "capacity" "BAT0")
     battery1_percentage=$(get_battery_info "capacity" "BAT1")
     battery0_energy_full=$(get_battery_info "energy_full" "BAT0")
     battery1_energy_full=$(get_battery_info "energy_full" "BAT1")
-    local total_energy_full=$((battery0_energy_full + battery1_energy_full))
-    local total_percentage=$(( (battery0_percentage * battery0_energy_full + battery1_percentage * battery1_energy_full) / total_energy_full ))
-    local total_status="Discharging"
+    total_energy_full=$((battery0_energy_full + battery1_energy_full))
+    total_percentage=$(( (battery0_percentage * battery0_energy_full + battery1_percentage * battery1_energy_full) / total_energy_full ))
+    total_status="Discharging"
     [ "$battery0_status" = "Charging" ] || [ "$battery1_status" = "Charging" ] && total_status="Charging"
     [ "$battery0_status" = "Full" ] && [ "$battery1_status" = "Full" ] && total_status="Full"
     echo "$total_status $total_percentage $battery0_percentage $battery1_percentage"
@@ -102,7 +96,11 @@ get_combined_battery_info() {
 # Display the battery status and percentage based on the current state
 case "$current_state" in
     "individual")
-        read -r total_status total_percentage battery0_percentage battery1_percentage <<< "$(get_combined_battery_info)"
+        set -- $(get_combined_battery_info)
+        total_status=$1
+        total_percentage=$2
+        battery0_percentage=$3
+        battery1_percentage=$4
         icon=$(get_icon "$total_status" "$total_percentage")
         echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${battery0_percentage}% - ${battery1_percentage}%^b#2e3440^"
     ;;
@@ -112,7 +110,9 @@ case "$current_state" in
         echo "^b#a3be8c^^c#2e3440^  ^b#2e3440^^c#a3be8c^ ${power_now_watt} W^b#2e3440^"
     ;;
     *)
-        read -r total_status total_percentage battery0_percentage battery1_percentage <<< "$(get_combined_battery_info)"
+        set -- $(get_combined_battery_info)
+        total_status=$1
+        total_percentage=$2
         icon=$(get_icon "$total_status" "$total_percentage")
         echo "^b#a3be8c^^c#2e3440^ ${icon} ^b#2e3440^^c#a3be8c^ ${total_percentage}%^b#2e3440^"
         send_notification "$total_percentage"

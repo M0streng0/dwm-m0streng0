@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # Path to the temporary file
 temp_file="/tmp/cpu_usage_temp"
@@ -11,40 +11,49 @@ read_cpu_stat() {
 # Function to calculate CPU usage
 calculate_cpu_usage() {
     # Get the current CPU statistics
-    IFS=' ' read -ra cpu_now < <(read_cpu_stat)
+    cpu_now=$(read_cpu_stat)
   
     # If the temp file doesn't exist, initialize it
-    if [[ ! -f "$temp_file" ]]; then
-        echo "${cpu_now[*]}" > "$temp_file"
+    if [ ! -f "$temp_file" ]; then
+        echo "$cpu_now" > "$temp_file"
         exit 0
     fi
 
     # Read the previous CPU statistics from the temp file
-    IFS=' ' read -ra cpu_last < <(cat "$temp_file")
+    cpu_last=$(cat "$temp_file")
 
     # Get all columns but skip the first (which is the "cpu" string)
     cpu_sum_now=0
     cpu_sum_last=0
-    for i in "${cpu_now[@]:1}"; do
-        cpu_sum_now=$((cpu_sum_now + i))
-    done
-    for i in "${cpu_last[@]:1}"; do
-        cpu_sum_last=$((cpu_sum_last + i))
-    done
 
+    set -- $cpu_now
+    shift 1 # Skip the first item 'cpu'
+    for value in "$@"; do
+       cpu_sum_now=$((cpu_sum_now + value))
+    done
+    cpu_idle_now=$4 # 4th column is idle time
+
+    set -- $cpu_last
+    shift 1 # Skip the first item 'cpu'
+    for value in "$@"; do
+       cpu_sum_last=$((cpu_sum_last + value))
+    done
+    cpu_idle_last=$4 # 4th column is idle time
+
+    # Calculate deltas
     cpu_delta=$((cpu_sum_now - cpu_sum_last))
-    cpu_idle=$((cpu_now[4] - cpu_last[4]))
+    cpu_idle=$((cpu_idle_now - cpu_idle_last))
     cpu_used=$((cpu_delta - cpu_idle))
 
     # Calculate the CPU usage percentage
-    if [[ $cpu_delta -ne 0 ]]; then
+    if [ $cpu_delta -ne 0 ]; then
         cpu_usage=$((100 * cpu_used / cpu_delta))
     else
         cpu_usage=0
     fi
 
     # Save the current CPU statistics
-    echo "${cpu_now[*]}" > "$temp_file" 
+    echo "$cpu_now" > "$temp_file"
 
     # Output the CPU usage percentage
     echo "${cpu_usage}%"

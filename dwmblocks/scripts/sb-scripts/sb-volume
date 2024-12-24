@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # Handle button actions
 case "$BLOCK_BUTTON" in

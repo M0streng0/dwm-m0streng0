@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # Handle click events to adjust brightness
 case "$BLOCK_BUTTON" in
@@ -15,7 +15,7 @@ brightness_percentage=$((current_brightness * 100 / max_brightness))
 
 # Get the icon based on the brightness percentage
 get_icon() {
-    local percentage=$1
+    percentage=$1
     case $percentage in
         [0-9]|1[0-9]) echo "󱩎 " ;;
         2[0-9]) echo "󱩏 " ;;
