@@ -58,6 +58,7 @@ This repository includes my configuration for [st-flexipatch](https://github.com
 - **BOXDRAW_PATCH**: Box drawing support.
 - **COLUMNS_PATCH**: Prevents text from being cut off when the terminal is resized.
 - **DELKEY_PATCH**: Del key support.
+- **DRAG_AND_DROP_PATCH**: Allows dragging a file into the terminal and have the path printed.
 - **DYNAMIC_CURSOR_COLOR_PATCH**: Makes the cursor color the inverse of the current cell color.
 - **LIGATURES_PATCH**: Support for ligatures.
 - **NEWTERM_PATCH**: Spawns a new `st` terminal with the same current working directory.
