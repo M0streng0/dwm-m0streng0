@@ -41,6 +41,7 @@ This repository includes my configuration for [st-flexipatch](https://github.com
 - **WARP_PATCH**: Warps the mouse to the center of the focused window.
 - **TILE_LAYOUT**: Tiling layout.
 - **MONOCLE_LAYOUT**: Monocle layout.
+- **WINDOWROLERULE_PATCH**: Allows the use of WM_WINDOW_ROLE(STRING) properties.
 
 ### Slock Patches
 

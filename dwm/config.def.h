@@ -151,6 +151,7 @@ static const Rule rules[] = {
 	RULE(.class = "Firefox", .tags = 1 << 7)
 	RULE(.class = "st", .isterminal = 1)
 	RULE(.class = "Qalculate-gtk", .isfloating = 1)
+	RULE(.role = "pop-up", .isfloating = 1)
 };
 
 /* Bar rules allow you to configure what is shown where on the bar, as well as
@@ -210,7 +211,7 @@ static const char *dmenucmd[] = {
 static const char *termcmd[]  = { "st", NULL };
 static const char *qalculatecmd[] = { "qalculate-gtk", NULL };
 static const char *thunarcmd[] = { "thunar", NULL };
-static const char *firefoxcmd[] = { "firefox", NULL };
+static const char *thoriumcmd[] = { "thorium-browser", NULL };
 static const char *sublimecmd[] = { "subl", NULL };
 static const char *launchercmd[] = { "sh", "-c", "~/.config/rofi/launcher/launcher.sh", NULL };
 static const char *powercmd[] = { "sh", "-c", "~/.config/rofi/powermenu/powermenu.sh", NULL };
@@ -234,7 +235,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_Return,     spawn,                  {.v = termcmd } },
 	{ MODKEY,                       XK_c,          spawn,                  {.v = qalculatecmd } },
 	{ MODKEY,                       XK_e,          spawn,                  {.v = thunarcmd } },
-	{ MODKEY,                       XK_w,          spawn,                  {.v = firefoxcmd } },
+	{ MODKEY,                       XK_w,          spawn,                  {.v = thoriumcmd } },
 	{ MODKEY,                       XK_s,          spawn,                  {.v = sublimecmd } },
 	{ MODKEY,                       XK_a,          spawn,                  {.v = launchercmd } },
 	{ MODKEY|ShiftMask,             XK_BackSpace,  spawn,                  {.v = powercmd } },
