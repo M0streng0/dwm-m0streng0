@@ -2,6 +2,7 @@
 
 # Handle click events to adjust brightness
 case "$BLOCK_BUTTON" in
+    2) invert-colors & ;;
     4) brightnessctl set 5%+ > /dev/null ;;
     5) brightnessctl set 5%- > /dev/null ;;
 esac

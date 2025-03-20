@@ -1,0 +1,14 @@
+#!/bin/sh
+FLAG="/tmp/xcalib_invert_flag"
+
+killall redshift
+
+if [ ! -f "$FLAG" ]; then
+    xcalib -invert -alter
+    touch "$FLAG"
+else
+    xcalib -clear -alter
+    rm "$FLAG"
+fi
+
+redshift &
